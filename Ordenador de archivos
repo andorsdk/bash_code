@@ -1,0 +1,78 @@
+@echo off
+REM expansión de variables retardada
+setlocal enabledelayedexpansion
+
+title Organizador de Archivos
+color 0A
+
+echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+echo                                             Organizador de Archivos
+echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+echo.
+
+REM Directorio de Descargas  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+set "descargas=%USERPROFILE%\Downloads"
+
+REM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+echo si no se especifica alguna extension se guardara en la carpeta otros
+set /p num_folders=" Dame el numero de carpetas a crear  "
+
+REM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+REM Crear un bucle para pedir los nombres de carpetas y las extensiones
+
+for /l %%i in (1,1,%num_folders%) do (
+    set /p folder_name="Ingresa el nombre de la carpeta %%i: "
+    set /p extensions="Ingresa las extensiones para la carpeta !folder_name! (separadas por un espacio,ejemplo: jpg png): "
+
+    REM Crear la carpeta si no existe
+    set "folder_path=%descargas%\!folder_name!"
+    if not exist "!folder_path!" mkdir "!folder_path!"
+
+    REM Mover archivos con las extensiones especificadas a la carpeta correspondiente
+    for %%e in (!extensions!) do (
+        for %%f in ("%descargas%\*.%%e") do (
+            move "%%f" "!folder_path!\" >nul 2>&1
+        )
+    )
+)
+
+REM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+REM Mover archivos restantes a la carpeta "Otros" 
+
+set "otros_folder=%descargas%\Otros"
+if not exist "%otros_folder%" mkdir "%otros_folder%"
+
+for %%f in ("%descargas%\*.*") do (
+    set "found=0"
+    for /d %%d in ("%descargas%\*") do (
+        if exist "%%d\%%~nxf" (
+            set "found=1"
+        )
+    )
+    if !found! equ 0 (
+        move "%%f" "%otros_folder%\" >nul 2>&1
+    )
+)
+
+
+REM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+REM Animación de barra de progreso rápida
+set "progress="
+for /l %%i in (0,5,100) do (
+    REM Actualiza la barra de progreso
+    set "progress=!progress!#"
+    cls
+    echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    echo                     Organizador de Archivos
+    echo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    echo.
+    echo Ordenando archivos... %%i%%
+    echo [!progress!]
+    REM Espera muy corta para acelerar la animación
+    >nul ping localhost -n 1.5
+)
+
+echo.
+echo Ordenamiento completado al 100%!
+pause
+endlocal
